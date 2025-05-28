@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from typing import List
@@ -24,6 +25,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
   lifespan=lifespan,
   title="Kurve Kiosk Customer API"
+)
+
+# CORS Middleware setup
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["*"],
+  allow_credentials=True, 
+  allow_methods=["*"],
+  allow_headers=["*"],
 )
 
 # ---- Root Endpoint ---- #
