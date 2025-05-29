@@ -6,12 +6,9 @@ from sqlalchemy import text
 
 from .database import AsyncSessionLocal, engine, Base
 from .models import Customer
+from .crud import get_customer_count
 
 fake = Faker()
-
-async def get_customer_count(db: AsyncSession) -> int:
-  result = await db.execute(select(Customer))
-  return len(result.scalars().all())
 
 async def _populate_customer_data(db: AsyncSession, num_records: int = 10000):
   """Internal helper to populate customer data"""
@@ -20,18 +17,15 @@ async def _populate_customer_data(db: AsyncSession, num_records: int = 10000):
   customers_to_add = []
 
   for i in range(num_records):
-      while True:
-        name = fake.name()
-        email = fake.unique.email() 
-        age = fake.random_int(min=18, max=80)
-        
-        if email not in generated_emails:
-          generated_emails.add(email)
-          customers_to_add.append(Customer(name=name, email=email, age=age))
-          break
+    while True:
+      name = fake.name()
+      email = fake.unique.email() 
+      age = fake.random_int(min=18, max=80)
       
-      if (i + 1) % 1000 == 0:
-        print(f"Generated {i + 1}/{num_records} records for batch insertion...")
+      if email not in generated_emails:
+        generated_emails.add(email)
+        customers_to_add.append(Customer(name=name, email=email, age=age))
+        break
 
   try:
     db.add_all(customers_to_add)

@@ -19,6 +19,13 @@ export interface CustomerUpdate {
   email?: string;
 }
 
+export interface PaginatedCustomersResponse {
+  records: Customer[];
+  total: number;
+  skip: number;
+  limit: number;
+}
+
 // Helper function for making API requests
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options);
@@ -38,8 +45,8 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 // ---- CRUD API Functions ---- //
 
 // GET ALL Customers
-export const getCustomers = async (): Promise<Customer[]> => {
-  return request<Customer[]>(`${API_BASE_URL}/customers/`);
+export const getCustomers = async (skip: number=0, limit: number=10): Promise<PaginatedCustomersResponse> => {
+  return request<PaginatedCustomersResponse>(`${API_BASE_URL}/customers/?skip=${skip}&limit=${limit}`);
 };
 
 // GET SINGLE Customer

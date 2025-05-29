@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, List
 
 # Base schema for Customer - used for both creating and returning customers
 class CustomerBase(BaseModel):
@@ -24,3 +24,9 @@ class CustomerUpdate(BaseModel):
   name: Optional[str] = Field(None, min_length=1, max_length=255)
   age: Optional[int] = Field(None, gt=0)
   email: Optional[EmailStr] = Field(None)
+
+class PaginatedCustomerResponse(BaseModel):
+  records: List[Customer]
+  skip: int
+  limit: int
+  total: int

@@ -58,11 +58,13 @@ async def create_new_customer(customer: schemas.CustomerCreate, db: AsyncSession
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
   return await crud.create_customer(db=db, customer=customer)
 
-# GET ALL Customers
-@app.get("/api/customers/", response_model=List[schemas.Customer], tags=["Customers"])
-async def get_customers_list(skip: int=0, limit: int=100, db: AsyncSession = Depends(get_db)):
+# GET ALL Customers 
+@app.get("/api/customers/", response_model=schemas.PaginatedCustomerResponse, tags=["Customers"])
+async def get_customers_list(skip: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=100), db: AsyncSession = Depends(get_db)):
   """
-  Retrieve a list of customers
+  Retrieve a paginated list of customers.
+  - **skip**: Number of records to skip (for pagination).
+  - **limit**: Maximum number of records to return (for pagination).
   """
   customers = await crud.get_customers(db, skip=skip, limit=limit)
   return customers

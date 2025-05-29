@@ -116,7 +116,7 @@ const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, onCustome
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
               disabled={isLoading}
             >
-              {isLoading ? 'Saving...' : 'Saved Changes'}
+              {isLoading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
