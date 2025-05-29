@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCustomers, deleteCustomer, updateCustomer, type Customer, type CustomerUpdate } from './services/api.services';
+import { getCustomers, deleteCustomer, type Customer } from './services/api.services';
 import AddCustomerForm from './components/AddCustomerForm';
 import EditCustomerForm from './components/EditCustomerForm';
 

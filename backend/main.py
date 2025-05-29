@@ -6,7 +6,7 @@ from typing import List
 
 from .database import engine, Base, get_db
 from . import models, schemas, crud
-from .populate_db import populate_database
+from .dev_util import populate_database, clear_database
 
 @asynccontextmanager
 # This code runs ONCE when the application starts up
@@ -129,7 +129,6 @@ async def populate_db(
     **Note:** This is a utility endpoint for development and testing. 
     Depending on `num_records`, this operation can take some time.
     """
-    print(f"Received request to populate database: num_records={num_records}, force={force}")
     message = await populate_database(num_records=num_records, force=force)
     print(f"Population process finished. Message: {message}")
 
@@ -137,3 +136,22 @@ async def populate_db(
       raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message)
     
     return {"message": message}
+
+# ---- Clear all customer records from the database ---- #
+@app.post("/api/dev/clear-db",
+        status_code=status.HTTP_200_OK,
+        tags=["Developer Utilities"])
+async def clear_db():
+  """
+  Clears all customer records from the database by truncating the 'customers' table.
+
+  **Warning:** This operation is irreversible and will delete all customer data.
+  Use with caution, primarily for development and testing purposes.
+  """
+  message = await clear_database()
+  print(f"Clear customers process finished. Message: {message}")
+
+  if "failed" in message.lower() or "error" in message.lower():
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message)
+  
+  return {"message": message}

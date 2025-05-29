@@ -2,6 +2,7 @@ import asyncio
 from faker import Faker
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 
 from .database import AsyncSessionLocal, engine, Base
 from .models import Customer
@@ -68,3 +69,18 @@ async def populate_database(num_records: int, force: bool):
         return f"{message_prefix} Populatuing failed: {str(e)}"
     else:
       return f"Database is not empty (found {current_count} customers). Populating skipped. Use 'force=true' to override."
+
+async def clear_database():
+  """
+  Clears all data from the customers table
+  Uses TRUNCATE for efficiency and to reset auto-increment
+  """
+  async with AsyncSessionLocal() as db:
+    async with db.begin(): 
+      try:
+        await db.execute(text("TRUNCATE TABLE customers"))
+        await db.commit()
+        return f"Successfully truncated the 'customers' table."
+      except Exception as e:
+        await db.rollback()
+        return f"Failed to truncate 'customers' table: {str(e)}"
