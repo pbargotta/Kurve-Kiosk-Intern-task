@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCustomers, createCustomer, deleteCustomer, type Customer, type CustomerCreate } from './services/api.services';
+import { getCustomers, deleteCustomer, type Customer } from './services/api.services';
 import AddCustomerForm from './components/AddCustomerForm';
 
 function App() {
