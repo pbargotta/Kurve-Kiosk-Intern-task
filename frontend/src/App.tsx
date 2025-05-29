@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { getCustomers, type Customer } from './services/api.services';
+import { getCustomers, createCustomer, deleteCustomer, type Customer, type CustomerCreate } from './services/api.services';
 import AddCustomerForm from './components/AddCustomerForm';
 
 function App() {
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [deletingCustomerId, setDeletingCustomerId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCustomers = async () => {
     try {
@@ -37,7 +38,25 @@ function App() {
     fetchCustomers();
   };
 
-  if (isLoading && customers.length === 0) { // Show loading only on initial load
+  const handleDeleteCustomer = async (customerId: number, customerName: string) => {
+    if (window.confirm(`Are you sure you want to delete ${customerName}?`)) {
+      setDeletingCustomerId(customerId);
+      setError(null);
+      try {
+        await deleteCustomer(customerId);
+        setCustomers(prevCustomers => prevCustomers.filter(c => c.id !== customerId));
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred while deleting.';
+        setError(`Failed to delete ${customerName}: ${errorMessage}`);
+        console.error(`Failed to delete customer ${customerId}:`, err);
+      } finally {
+        setDeletingCustomerId(null);
+      }
+    }
+  };
+
+  // Show loading only on initial load
+  if (isLoading && customers.length === 0) { 
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-xl text-gray-700">Loading customers...</p>
@@ -45,11 +64,18 @@ function App() {
     );
   }
 
-  if (error && customers.length === 0) { // Show error only if list is empty
+  // Initial error state handling
+  if (error && customers.length === 0 && !deletingCustomerId) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-red-500">
         <p className="text-xl">Error loading customers:</p>
         <p>{error}</p>
+        <button
+          onClick={fetchCustomers}
+          className="px-4 py-2 mt-4 text-white bg-blue-500 rounded hover:bg-blue-600"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -79,7 +105,7 @@ function App() {
         />
       )}
       
-      {/* Displaying the list of customers */}
+      {/* Displaying general errors or loading messages */}
       {isLoading && customers.length > 0 && <p className="text-center text-gray-600">Refreshing customers...</p>}
       {!isLoading && customers.length === 0 && !error && (
         <p className="text-center text-gray-600">No customers found. Click "Add New Customer" to begin.</p>
@@ -90,6 +116,7 @@ function App() {
         <div className="overflow-x-auto bg-white rounded-lg shadow">
           <table className="min-w-full leading-normal">
             <thead>
+              {/* Table Headers */}
               <tr className="border-b-2 border-gray-200 bg-gray-50">
                 <th className="px-5 py-3 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase">ID</th>
                 <th className="px-5 py-3 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase">Name</th>
@@ -101,17 +128,26 @@ function App() {
             <tbody>
               {customers.map((customer) => (
                 <tr key={customer.id} className="border-b border-gray-200 hover:bg-gray-50">
+                  {/* Table cells for id, name, age, email */}
                   <td className="px-5 py-4 text-sm text-gray-900 whitespace-no-wrap">{customer.id}</td>
                   <td className="px-5 py-4 text-sm text-gray-900 whitespace-no-wrap">{customer.name}</td>
                   <td className="px-5 py-4 text-sm text-gray-900 whitespace-no-wrap">{customer.age}</td>
                   <td className="px-5 py-4 text-sm text-gray-900 whitespace-no-wrap">{customer.email}</td>
                   <td className="px-5 py-4 text-sm text-gray-900 whitespace-no-wrap">
-                    {/* Placeholder for Edit/Delete buttons */}
-                    <button className="mr-2 text-indigo-600 hover:text-indigo-900" onClick={() => alert(`Edit ${customer.name}`)}>
+                    {/* Edit & Delete buttons */}
+                    <button 
+                      className="mr-2 text-indigo-600 hover:text-indigo-900" 
+                      onClick={() => alert(`Edit ${customer.name}`)} // Placeholder
+                      disabled={deletingCustomerId === customer.id}
+                    >
                       Edit
                     </button>
-                    <button className="text-red-600 hover:text-red-900" onClick={() => alert(`Delete ${customer.name}`)}>
-                      Delete
+                    <button
+                      className="text-red-600 hover:text-red-900"
+                      onClick={() => handleDeleteCustomer(customer.id, customer.name)}
+                      disabled={deletingCustomerId === customer.id}
+                    >
+                      {deletingCustomerId === customer.id ? 'Deleting...' : 'Delete'}
                     </button>
                   </td>
                 </tr>
