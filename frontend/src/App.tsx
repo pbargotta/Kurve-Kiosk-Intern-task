@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getCustomers, deleteCustomer, type Customer, type PaginatedCustomersResponse } from './services/api.services';
 import AddCustomerForm from './components/AddCustomerForm';
 import EditCustomerForm from './components/EditCustomerForm';
+import Pagination from './components/Pagination';
 
 const ITEMS_PER_PAGE = 10;
 const MIN_LOADER_DISPLAY_TIME = 300; // milliseconds
@@ -247,26 +248,16 @@ function App() {
             {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex flex-col sm:flex-row items-center justify-between mt-6 px-1 py-3">
-                <span className="text-sm text-gray-700 mb-2 sm:mb-0">
+                <span className="text-sm text-gray-700 mb-3 sm:mb-0">
                   Page <span className="font-semibold text-gray-900">{currentPage}</span> of <span className="font-semibold text-gray-900">{totalPages}</span>
-                  <span className="hidden sm:inline ml-2">({totalCustomers} total records)</span>
+                  <span className="hidden md:inline ml-2">({totalCustomers} total records)</span>
                 </span>
-                <div className="inline-flex rounded-md shadow-sm" role="group">
-                  <button 
-                    onClick={() => handlePageChange(currentPage - 1)} 
-                    disabled={currentPage <= 1 || isPageLoading}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition ease-in-out duration-150"
-                  >
-                    Previous
-                  </button>
-                  <button 
-                    onClick={() => handlePageChange(currentPage + 1)} 
-                    disabled={currentPage >= totalPages || isPageLoading}
-                    className="px-4 py-2 -ml-px text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition ease-in-out duration-150"
-                  >
-                    Next
-                  </button>
-                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  isLoading={isPageLoading}
+                />
               </div>
             )}
           </>
