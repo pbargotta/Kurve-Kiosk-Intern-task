@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { getCustomers, deleteCustomer, type Customer } from './services/api.services';
+import { getCustomers, deleteCustomer, updateCustomer, type Customer, type CustomerUpdate } from './services/api.services';
 import AddCustomerForm from './components/AddCustomerForm';
+import EditCustomerForm from './components/EditCustomerForm';
 
 function App() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [deletingCustomerId, setDeletingCustomerId] = useState<number | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,19 @@ function App() {
     }
   };
 
+  const handleOpenEditForm = (customer: Customer) => {
+    setEditingCustomer(customer);
+  };
+
+  const handleCloseEditForm = () => {
+    setEditingCustomer(null);
+  };
+
+  const handleCustomerUpdated = (updatedCustomer: Customer) => {
+    setCustomers(prevCustomers => prevCustomers.map(c => (c.id === updatedCustomer.id ? updatedCustomer : c)));
+    setEditingCustomer(null);
+  };
+
   // Show loading only on initial load
   if (isLoading && customers.length === 0) { 
     return (
@@ -97,11 +112,20 @@ function App() {
         </button>
       </div>
 
-      {/* Conditionally dipslay the AddCustomerForm */}
+      {/* Dipslay the AddCustomerForm when selected */}
       {showAddForm && (
         <AddCustomerForm
           onCustomerAdded={handleCustomerAdded}
           onCancel={() => setShowAddForm(false)}
+        />
+      )}
+
+      {/* Conditionally display the EditCustomerForm when selected */}
+      {editingCustomer && (
+        <EditCustomerForm
+          customer={editingCustomer}
+          onCustomerUpdated={handleCustomerUpdated}
+          onCancel={handleCloseEditForm}
         />
       )}
       
@@ -135,10 +159,10 @@ function App() {
                   <td className="px-5 py-4 text-sm text-gray-900 whitespace-no-wrap">{customer.email}</td>
                   <td className="px-5 py-4 text-sm text-gray-900 whitespace-no-wrap">
                     {/* Edit & Delete buttons */}
-                    <button 
-                      className="mr-2 text-indigo-600 hover:text-indigo-900" 
-                      onClick={() => alert(`Edit ${customer.name}`)} // Placeholder
-                      disabled={deletingCustomerId === customer.id}
+                    <button
+                      className="mr-2 text-indigo-600 hover:text-indigo-900"
+                      onClick={() => handleOpenEditForm(customer)}
+                      disabled={deletingCustomerId === customer.id || !!editingCustomer}
                     >
                       Edit
                     </button>
