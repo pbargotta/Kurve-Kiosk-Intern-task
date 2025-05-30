@@ -20,7 +20,7 @@ Before you begin, ensure you have the following installed:
 
 1.  **Clone the Repository:**
     ```bash
-    git clone <(https://github.com/pbargotta/Kurve-Kiosk-Intern-task)>
+    git clone <https://github.com/pbargotta/Kurve-Kiosk-Intern-task>
     cd kurve-kiosk-intern-task
     ```
 
