@@ -1,0 +1,15 @@
+__pycache__/
+.env
+.env.development
+
+venv/
+backend/venv/
+
+node_modules/
+frontend/node_modules/
+frontend/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# package-lock.json
+# yarn.lock
