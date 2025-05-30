@@ -11,22 +11,36 @@ from .crud import get_customer_count
 fake = Faker()
 
 async def _populate_customer_data(db: AsyncSession, num_records: int = 10000):
-  """Internal helper to populate customer data"""
+  """
+  Internal helper to populate customer data
+  """
   print(f"Starting to populate {num_records} customer records...")
   generated_emails = set()
   customers_to_add = []
 
+  # Get existing emails to avoid collision
+  existing_emails_result = await db.execute(select(Customer.email))
+  existing_emails_in_db = set(existing_emails_result.scalars().all())
+  generated_emails.update(existing_emails_in_db)
+
   for i in range(num_records):
-    while True:
+    attempts = 0
+    while attempts < num_records * 2 : # Safety break for too many collisions
       name = fake.name()
-      email = fake.unique.email() 
+      email = fake.unique.email()
       age = fake.random_int(min=18, max=80)
       
       if email not in generated_emails:
         generated_emails.add(email)
         customers_to_add.append(Customer(name=name, email=email, age=age))
         break
+      attempts += 1
+    else: # If while loop finishes due to attempts limit - this might happen if num_records is very large relative to email domain space with Faker's unique
+      print(f"Warning: Could not generate a unique email after {attempts} attempts for record {i+1}. Skipping this record.")
 
+    if not customers_to_add:
+      print("No new unique customer records were generated to add.")
+      return 0
   try:
     db.add_all(customers_to_add)
     await db.commit()
@@ -37,32 +51,23 @@ async def _populate_customer_data(db: AsyncSession, num_records: int = 10000):
     print(f"Error during bulk insert: {e}. No records were added in this batch.")
     raise Exception(f"Bulk insert failed: {e}") from e
 
-async def populate_database(num_records: int, force: bool):
+async def populate_database(num_records: int):
   """
-  Main logic to populate database.
-  Ensures tables are created, checks current count, and populates if conditions met.
-  Returns a status message.
+  Main logic to populate database
   """
   async with engine.begin() as conn:
     await conn.run_sync(Base.metadata.create_all)
 
   async with AsyncSessionLocal() as db:
-    current_count = await get_customer_count(db)
-    
-    if current_count == 0 or force:
-      if force and current_count > 0:
-        message_prefix = f"Forcing data population. Current count: {current_count}."
-      else:
-        message_prefix = "Database is empty. Populating data."
-
-      print(message_prefix)
-      try:
-        added_count = await _populate_customer_data(db, num_records)
-        return f"{message_prefix} Successfully added {added_count} records. New total: {await get_customer_count(db)}"
-      except Exception as e:
-        return f"{message_prefix} Populatuing failed: {str(e)}"
-    else:
-      return f"Database is not empty (found {current_count} customers). Populating skipped. Use 'force=true' to override."
+    initial_count = await get_customer_count(db)
+    print(f"Attempting to add {num_records} new records. Current count: {initial_count}.")
+    try:
+      added_count = await _populate_customer_data(db, num_records)
+      if added_count == 0 and num_records > 0:
+        return f"Attempted to add {num_records} records, but {added_count} new unique records were generated/added. This might be due to email collisions or reaching generation limits. Initial count: {initial_count}. New total: {await get_customer_count(db)}"    
+      return f"Successfully added {added_count} new records. Initial count: {initial_count}. New total: {await get_customer_count(db)}"
+    except Exception as e:
+      return f"Adding records failed: {str(e)}. Initial count: {initial_count}. Current total: {await get_customer_count(db)}"
 
 async def clear_database():
   """

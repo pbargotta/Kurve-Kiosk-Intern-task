@@ -120,24 +120,22 @@ async def delete_existing_customer(customer_id: int, db: AsyncSession = Depends(
           status_code=status.HTTP_200_OK, 
           tags=["Development"])
 async def populate_db(
-    num_records: int = Query(10000, ge=1, le=50000), # Max 50,000 for performance testing
-    force: bool = Query(False)
+  num_records: int = Query(10000, ge=1, le=50000) # Max 50,000 for performance testing
 ):
-    """
-    Populates the database with a specified number of test customer records
-    - **num_records**: Number of customer records to generate (default 10000).
-    - **force**: If true, adds data even if the customers table is not empty. Otherwise, only populates if empty.
+  """
+  Populates the database with a specified number of test customer records
+  - **num_records**: Number of customer records to generate (default 10000).
 
-    **Note:** This is a utility endpoint for development and testing. 
-    Depending on `num_records`, this operation can take some time.
-    """
-    message = await populate_database(num_records=num_records, force=force)
-    print(f"Population process finished. Message: {message}")
+  **Note:** This is a utility endpoint for development and testing. 
+  Depending on `num_records`, this operation can take some time.
+  """
+  message = await populate_database(num_records=num_records)
+  print(f"Population process finished. Message: {message}")
 
-    if "failed" in message.lower() or "error" in message.lower():
-      raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message)
-    
-    return {"message": message}
+  if "failed" in message.lower() or "error" in message.lower():
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message)
+  
+  return {"message": message}
 
 # ---- Clear all customer records from the database ---- #
 @app.post("/api/dev/clear-db",

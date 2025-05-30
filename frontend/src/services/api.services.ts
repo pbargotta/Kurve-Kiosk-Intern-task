@@ -82,3 +82,21 @@ export const deleteCustomer = async (id: number): Promise<Customer> => {
     method: 'DELETE',
   });
 };
+
+// ---- Developer Utility API Functions ---- //
+
+interface DevAction {
+  message: string;
+}
+
+export const populateDatabase = async (numRecords: number = 10000): Promise<DevAction> => {
+  return request<DevAction>(`${API_BASE_URL}/dev/populate-db?num_records=${numRecords}`, {
+    method: 'POST',
+  });
+};
+
+export const clearDatabase = async (): Promise<DevAction> => {
+  return request<DevAction>(`${API_BASE_URL}/dev/clear-db`, {
+    method: 'POST',
+  });
+};
